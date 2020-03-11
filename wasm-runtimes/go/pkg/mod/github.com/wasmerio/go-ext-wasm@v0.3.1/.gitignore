@@ -1,0 +1,4 @@
+/target
+/wasmer/_obj
+/wasmer/pkg
+/bazel-*
