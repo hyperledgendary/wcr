@@ -7,6 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 
+const {Arguments} = require('./compiled');
+
 class Wasm_PcRuntime {
 
     constructor(filename) {
@@ -90,8 +92,17 @@ class Wasm_PcRuntime {
         return this;
     }
 
-    call(fnname, buffer) {
+    /**
+     * 
+     * @param {String} fnname 
+     * @param {String[]} args Array of buffers that are the arguments
+     */
+    call(fnname, args, txid, channelid) {
         const fnnameBuffer = Buffer.from(fnname, 'utf-8');
+
+        let msg = Arguments.create({ fnname, args, txid, channelid });
+        let buffer = Arguments.encode(msg).finish();
+
         console.log(`[host] ${fnname} ${buffer.length}`);
 
         this.currentFnname = fnnameBuffer;

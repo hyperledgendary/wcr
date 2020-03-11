@@ -3,7 +3,9 @@ package datatypes;
 
 message Arguments {
   string fnname = 1;
-  repeated string args = 2;
+  string txid = 2;
+  string channelid = 3;
+  repeated string args = 4;
 }
 
 message Return {

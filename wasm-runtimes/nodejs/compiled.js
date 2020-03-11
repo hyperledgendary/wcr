@@ -25,6 +25,8 @@ $root.datatypes = (function() {
          * @memberof datatypes
          * @interface IArguments
          * @property {string|null} [fnname] Arguments fnname
+         * @property {string|null} [txid] Arguments txid
+         * @property {string|null} [channelid] Arguments channelid
          * @property {Array.<string>|null} [args] Arguments args
          */
 
@@ -51,6 +53,22 @@ $root.datatypes = (function() {
          * @instance
          */
         Arguments.prototype.fnname = "";
+
+        /**
+         * Arguments txid.
+         * @member {string} txid
+         * @memberof datatypes.Arguments
+         * @instance
+         */
+        Arguments.prototype.txid = "";
+
+        /**
+         * Arguments channelid.
+         * @member {string} channelid
+         * @memberof datatypes.Arguments
+         * @instance
+         */
+        Arguments.prototype.channelid = "";
 
         /**
          * Arguments args.
@@ -86,9 +104,13 @@ $root.datatypes = (function() {
                 writer = $Writer.create();
             if (message.fnname != null && message.hasOwnProperty("fnname"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.fnname);
+            if (message.txid != null && message.hasOwnProperty("txid"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.txid);
+            if (message.channelid != null && message.hasOwnProperty("channelid"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.channelid);
             if (message.args != null && message.args.length)
                 for (var i = 0; i < message.args.length; ++i)
-                    writer.uint32(/* id 2, wireType 2 =*/18).string(message.args[i]);
+                    writer.uint32(/* id 4, wireType 2 =*/34).string(message.args[i]);
             return writer;
         };
 
@@ -127,6 +149,12 @@ $root.datatypes = (function() {
                     message.fnname = reader.string();
                     break;
                 case 2:
+                    message.txid = reader.string();
+                    break;
+                case 3:
+                    message.channelid = reader.string();
+                    break;
+                case 4:
                     if (!(message.args && message.args.length))
                         message.args = [];
                     message.args.push(reader.string());
@@ -169,6 +197,12 @@ $root.datatypes = (function() {
             if (message.fnname != null && message.hasOwnProperty("fnname"))
                 if (!$util.isString(message.fnname))
                     return "fnname: string expected";
+            if (message.txid != null && message.hasOwnProperty("txid"))
+                if (!$util.isString(message.txid))
+                    return "txid: string expected";
+            if (message.channelid != null && message.hasOwnProperty("channelid"))
+                if (!$util.isString(message.channelid))
+                    return "channelid: string expected";
             if (message.args != null && message.hasOwnProperty("args")) {
                 if (!Array.isArray(message.args))
                     return "args: array expected";
@@ -193,6 +227,10 @@ $root.datatypes = (function() {
             var message = new $root.datatypes.Arguments();
             if (object.fnname != null)
                 message.fnname = String(object.fnname);
+            if (object.txid != null)
+                message.txid = String(object.txid);
+            if (object.channelid != null)
+                message.channelid = String(object.channelid);
             if (object.args) {
                 if (!Array.isArray(object.args))
                     throw TypeError(".datatypes.Arguments.args: array expected");
@@ -218,10 +256,17 @@ $root.datatypes = (function() {
             var object = {};
             if (options.arrays || options.defaults)
                 object.args = [];
-            if (options.defaults)
+            if (options.defaults) {
                 object.fnname = "";
+                object.txid = "";
+                object.channelid = "";
+            }
             if (message.fnname != null && message.hasOwnProperty("fnname"))
                 object.fnname = message.fnname;
+            if (message.txid != null && message.hasOwnProperty("txid"))
+                object.txid = message.txid;
+            if (message.channelid != null && message.hasOwnProperty("channelid"))
+                object.channelid = message.channelid;
             if (message.args && message.args.length) {
                 object.args = [];
                 for (var j = 0; j < message.args.length; ++j)

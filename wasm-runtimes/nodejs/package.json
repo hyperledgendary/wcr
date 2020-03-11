@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "protos": "pbjs -t static-module -w commonjs -o compiled.js message.proto"
   },
   "keywords": [],
   "author": "",
