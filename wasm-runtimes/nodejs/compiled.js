@@ -295,8 +295,8 @@ $root.datatypes = (function() {
          * Properties of a Return.
          * @memberof datatypes
          * @interface IReturn
-         * @property {string|null} [result] Return result
-         * @property {string|null} [error] Return error
+         * @property {number|null} [code] Return code
+         * @property {string|null} [data] Return data
          */
 
         /**
@@ -315,20 +315,20 @@ $root.datatypes = (function() {
         }
 
         /**
-         * Return result.
-         * @member {string} result
+         * Return code.
+         * @member {number} code
          * @memberof datatypes.Return
          * @instance
          */
-        Return.prototype.result = "";
+        Return.prototype.code = 0;
 
         /**
-         * Return error.
-         * @member {string} error
+         * Return data.
+         * @member {string} data
          * @memberof datatypes.Return
          * @instance
          */
-        Return.prototype.error = "";
+        Return.prototype.data = "";
 
         /**
          * Creates a new Return instance using the specified properties.
@@ -354,10 +354,10 @@ $root.datatypes = (function() {
         Return.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.result != null && message.hasOwnProperty("result"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.result);
-            if (message.error != null && message.hasOwnProperty("error"))
-                writer.uint32(/* id 2, wireType 2 =*/18).string(message.error);
+            if (message.code != null && message.hasOwnProperty("code"))
+                writer.uint32(/* id 1, wireType 0 =*/8).int32(message.code);
+            if (message.data != null && message.hasOwnProperty("data"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.data);
             return writer;
         };
 
@@ -393,10 +393,10 @@ $root.datatypes = (function() {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.result = reader.string();
+                    message.code = reader.int32();
                     break;
                 case 2:
-                    message.error = reader.string();
+                    message.data = reader.string();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -433,12 +433,12 @@ $root.datatypes = (function() {
         Return.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.result != null && message.hasOwnProperty("result"))
-                if (!$util.isString(message.result))
-                    return "result: string expected";
-            if (message.error != null && message.hasOwnProperty("error"))
-                if (!$util.isString(message.error))
-                    return "error: string expected";
+            if (message.code != null && message.hasOwnProperty("code"))
+                if (!$util.isInteger(message.code))
+                    return "code: integer expected";
+            if (message.data != null && message.hasOwnProperty("data"))
+                if (!$util.isString(message.data))
+                    return "data: string expected";
             return null;
         };
 
@@ -454,10 +454,10 @@ $root.datatypes = (function() {
             if (object instanceof $root.datatypes.Return)
                 return object;
             var message = new $root.datatypes.Return();
-            if (object.result != null)
-                message.result = String(object.result);
-            if (object.error != null)
-                message.error = String(object.error);
+            if (object.code != null)
+                message.code = object.code | 0;
+            if (object.data != null)
+                message.data = String(object.data);
             return message;
         };
 
@@ -475,13 +475,13 @@ $root.datatypes = (function() {
                 options = {};
             var object = {};
             if (options.defaults) {
-                object.result = "";
-                object.error = "";
+                object.code = 0;
+                object.data = "";
             }
-            if (message.result != null && message.hasOwnProperty("result"))
-                object.result = message.result;
-            if (message.error != null && message.hasOwnProperty("error"))
-                object.error = message.error;
+            if (message.code != null && message.hasOwnProperty("code"))
+                object.code = message.code;
+            if (message.data != null && message.hasOwnProperty("data"))
+                object.data = message.data;
             return object;
         };
 

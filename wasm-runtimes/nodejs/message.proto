@@ -9,6 +9,6 @@ message Arguments {
 }
 
 message Return {
-  string result = 1;
-  string error = 2;
+  int32 code = 1;       // 0 is success, anything is error
+  string data = 2;
 }

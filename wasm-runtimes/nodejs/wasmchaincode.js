@@ -5,7 +5,7 @@
 */
 'use strict';
 
-const { Shim } = require('fabric-shim');
+const {Shim} = require('fabric-shim');
 
 const Logger = require('./logger');
 const logger = Logger.getLogger('wasmchaincode.js');
@@ -60,8 +60,7 @@ class WasmChaincode {
         const channelID = stub.getChannelID();
         const loggerPrefix = this.generateLoggingPrefix(channelID, txID);
         try {
-            let result = await this.wasmRuntime.call(fAndP, txArgs, txId, channelID);
-
+            const result = await this.wasmRuntime.call(fAndP, txArgs, txID, channelID);
             return Shim.success(result);
 
         } catch (error) {

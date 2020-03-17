@@ -7,7 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 
-const {Arguments} = require('./compiled');
+const {Arguments, Result} = require('./compiled');
+const CallContext = require('./callcontext');
 
 class Wasm_PcRuntime {
 
@@ -16,8 +17,6 @@ class Wasm_PcRuntime {
         this.source = fs.readFileSync(path.resolve(filename));
         this.cachegetUint8Memory0 = null;
     }
-
-
 
     getUint8Memory0() {
         if (this.cachegetUint8Memory0 === null || this.cachegetUint8Memory0.buffer !== this.wasmMemory.buffer) {
@@ -36,7 +35,7 @@ class Wasm_PcRuntime {
             table: new WebAssembly.Table({
                 initial: 0,
                 element: 'anyfunc'
-            }), 'wapc':this.wapc
+            }), 'wapc': this.wapc
         };
 
         this.cachedTextDecoder = new util.TextDecoder('utf-8', {ignoreBOM: true, fatal: true});
@@ -47,29 +46,41 @@ class Wasm_PcRuntime {
             'wapc': {
                 '__guest_request': (op_ptr, param_ptr) => {
                     console.log('__guest_request');
-                    this.getUint8Memory0().subarray(op_ptr, op_ptr + this.currentFnname.length).set(this.currentFnname);
-                    this.getUint8Memory0().subarray(param_ptr, param_ptr + this.currentBuffer.length).set(this.currentBuffer);
+                    this.getUint8Memory0().subarray(op_ptr, op_ptr +  this.callContext.currentFnname.length).set(this.callContext.currentFnname);
+                    this.getUint8Memory0().subarray(param_ptr, param_ptr +  this.callContext.currentBuffer.length).set(this.callContext.currentBuffer);
                     return 0;
                 },
-                '__guest_error': () => { },
-                '__guest_response': (ptr, len) => {
-                    const result = this.cachedTextDecoder.decode(this.getUint8Memory0().subarray(ptr, ptr + len));
-                    console.log(chalk.keyword('orange')('[rust] ' + result));
+                '__guest_error': (ptr, len) => {
+                    console.log(chalk.redBright(`[rust] ${ptr} len=${len}`));
+                    this.callContext.error(this.getUint8Memory0().subarray(ptr, ptr + len));
                     return 1;
                 },
-                '__host_call': (ns_ptr, ns_len, op_ptr, op_len, ptr, len) => {
+                '__guest_response': (ptr, len) => {
+                    // const result = this.cachedTextDecoder.decode(this.getUint8Memory0().subarray(ptr, ptr + len));
+                    // console.log(chalk.keyword('orange')('[rust] ' + result));
+                    console.log(chalk.keyword('orange')(`[rust] ${ptr} len=${len}`));
+                    this.callContext.complete(this.getUint8Memory0().subarray(ptr, ptr + len));
+                    return 1;
+                },
+                '__host_call': async (ns_ptr, ns_len, op_ptr, op_len, ptr, len) => {
                     const ns = this.cachedTextDecoder.decode(this.getUint8Memory0().subarray(ns_ptr, ns_ptr + ns_len));
                     const op = this.cachedTextDecoder.decode(this.getUint8Memory0().subarray(op_ptr, op_ptr + op_len));
-                    const data = this.cachedTextDecoder.decode(this.getUint8Memory0().subarray(ptr, ptr + len));
+                    const data = this.getUint8Memory0().subarray(ptr, ptr + len);
+
+                    // this is the request from the guest code to perform an operation
+                    // map this to the stub request
+                    this.callContext.callback(ns, op, data);
                     console.log(`___host_call ${ns} ${op} ${data}`);
+                    this.hostCallresult = await this.callContext.nestedResult();
                     return 1;
                 },
                 '__host_response_len': () => {
-                    console.log('__host_response_len');
-                    return 'Hello from Ferric Oxide!'.length;
+                    this.callContext.
+                        console.log('__host_response_len');
+                    return this.hostCallresult.length;
                 },
                 '__host_response': (ptr) => {
-                    this.getUint8Memory0().subarray(ptr, ptr + 'Hello from Ferric Oxide!'.length).set(Buffer.from('Hello from Ferric Oxide!', 'utf-8'));
+                    this.getUint8Memory0().subarray(ptr, ptr + this.hostCallresult.length).set(this.hostCallresult);
                     console.log(`__host_response ${ptr}`);
                 },
                 '__host_error_len': () => {
@@ -93,23 +104,31 @@ class Wasm_PcRuntime {
     }
 
     /**
-     * 
-     * @param {String} fnname 
+     *
+     * @param {String} fnname
      * @param {String[]} args Array of buffers that are the arguments
      */
-    call(fnname, args, txid, channelid) {
+    async call(fnname, args, txid, channelid, callback) {
         const fnnameBuffer = Buffer.from(fnname, 'utf-8');
 
-        let msg = Arguments.create({ fnname, args, txid, channelid });
-        let buffer = Arguments.encode(msg).finish();
+        const msg = Arguments.create({fnname, args, txid, channelid});
+        const buffer = Arguments.encode(msg).finish();
 
         console.log(`[host] ${fnname} ${buffer.length}`);
+        const callContextId = `${txid}:${channelid}`;
+        this.callContext = new CallContext(callContextId, callback);
 
-        this.currentFnname = fnnameBuffer;
-        this.currentBuffer = buffer;
+        this.callContext.currentFnname = fnnameBuffer;
+        this.callContext.currentBuffer = buffer;
 
-        const rc = this.wasm.instance.exports.__guest_call(fnnameBuffer.length, buffer.length);
+        this.wasm.instance.exports.__guest_call(fnnameBuffer.length, buffer.length);
 
+        const returnBuffer = await this.callContext.result();
+        const result = Result.decode(returnBuffer);
+        if (result.code !== 0) {
+            throw new Error(result.data);
+        }
+        return result.data;
     }
 }
 
