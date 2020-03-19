@@ -1,5 +1,5 @@
 [workspace]
 
 members = [
-    "my-first-contract","contractapi","contract-runtime"
+    "my_first_contract","fabric_contract"
 ]

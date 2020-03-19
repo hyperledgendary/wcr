@@ -12,11 +12,11 @@ func check(e error) {
 }
 
 func main() {
-	log.Printf("[host] starting..")
+	log.Printf("[host] Wasm Contract runtime..")
 
-	wrt := wasmruntime.NewRuntime("./contract.wasm")
+	wrt := wasmruntime.NewRuntime("./contract_runtime.wasm")
 
-	wrt.Call("my-first-contract:my_first_transaction", []string{"Call","from the peer"},"txid2","mychannel")
-
+	wrt.Call("my-first-contract:my_first_transaction", []string{"Call", "from the peer"}, "txid2", "mychannel")
+	log.Printf("[host] Complete")
 	return
 }
