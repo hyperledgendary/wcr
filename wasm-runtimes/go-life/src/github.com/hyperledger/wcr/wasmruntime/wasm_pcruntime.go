@@ -9,6 +9,9 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/perlin-network/life/exec"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	sc "github.com/hyperledger/fabric-protos-go/peer"
 )
 
 // WasmPcRuntime is an abstraction of the instance of the Wasm engine
@@ -43,7 +46,7 @@ type Resolver struct {
 
 // ResolveFunc Sorts out the imports of the runtime
 func (r *Resolver) ResolveFunc(module, field string) exec.FunctionImport {
-	log.Printf("Resolve func: %s %s\n", module, field)
+	// log.Printf("Resolve func: %s %s\n", module, field)
 	wr := *(r.runtime)
 	switch module {
 	case "wapc":
@@ -55,7 +58,7 @@ func (r *Resolver) ResolveFunc(module, field string) exec.FunctionImport {
 				opptr := int(uint32(vm.GetCurrentFrame().Locals[0]))
 				paramptr := int(uint32(vm.GetCurrentFrame().Locals[1]))
 
-				fnBuffer := []byte(wr.callctx.fnName)
+				fnBuffer := []byte("contract") // []byte(wr.callctx.fnName)
 				m := vm.Memory[opptr : opptr+len(fnBuffer)]
 				copy(m, fnBuffer)
 
@@ -153,7 +156,7 @@ func (r *Resolver) ResolveFunc(module, field string) exec.FunctionImport {
 				msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 				msg := vm.Memory[ptr : ptr+msgLen]
 
-				log.Printf("[guest:console_log] data at pointer location : %s\n", string(msg))
+				log.Printf("[guest:console_log] %s\n", string(msg))
 
 				return 0
 			}
@@ -163,7 +166,7 @@ func (r *Resolver) ResolveFunc(module, field string) exec.FunctionImport {
 				msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 				msg := vm.Memory[ptr : ptr+msgLen]
 
-				log.Printf("[guest:log] data at pointer location : %s\n", string(msg))
+				log.Printf("[guest:log] %s\n", string(msg))
 
 				return 0
 			}
@@ -196,7 +199,7 @@ func (r *Resolver) ResolveGlobal(module, field string) int64 {
 // Call makes the requried tx call on the wasm contract
 func (wr *WasmPcRuntime) Call(fnname string, args []string, txid string, channelid string) {
 
-	fnBuffer := []byte(fnname)
+	fnBuffer := []byte("contract") //[]byte(fnname)
 	wr.callctx = Callcontext{
 		fnName: fnname,
 	}
@@ -252,4 +255,16 @@ func NewRuntime(filename string) *WasmPcRuntime {
 	wr.guestCall = entryID
 
 	return &wr
+}
+
+func (s *WasmPcRuntime) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
+	return shim.Success(nil)
+}
+
+func (s *WasmPcRuntime) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
+	function, args := APIstub.GetFunctionAndParameters()
+	txid := APIstub.GetTxID()
+	channelid := APIstub.GetChannelID()
+	s.Call(function, args, txid, channelid)
+	return shim.Success(nil)
 }

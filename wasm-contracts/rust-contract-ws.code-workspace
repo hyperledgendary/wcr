@@ -1,7 +1,16 @@
 {
 	"folders": [
 		{
+			"name": "_extra",
+			"path": "_extra"
+		},
+		{
+			"name": "rust-workspace",
 			"path": "rust-workspace"
+		},
+		{
+			"name": "wapc-guest-rust",
+			"path": "/home/matthew/github.com/ampretia/wasm/wapc-guest-rust"
 		}
 	],
 	"settings": {}

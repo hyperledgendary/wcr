@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"wcr/wasmruntime"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 )
 
 func check(e error) {
@@ -14,9 +16,10 @@ func check(e error) {
 func main() {
 	log.Printf("[host] Wasm Contract runtime..")
 
-	wrt := wasmruntime.NewRuntime("./contract_runtime.wasm")
+	wrt := wasmruntime.NewRuntime("./fabric_contract.wasm")
 
-	wrt.Call("my-first-contract:my_first_transaction", []string{"Call", "from the peer"}, "txid2", "mychannel")
-	log.Printf("[host] Complete")
+	err := shim.Start(wrt)
+	check(err)
+
 	return
 }

@@ -5,7 +5,3 @@
 pub mod contractapi;
 pub mod runtime;
 
-pub fn say_hell(){
-    println!("hell");
-}
-
