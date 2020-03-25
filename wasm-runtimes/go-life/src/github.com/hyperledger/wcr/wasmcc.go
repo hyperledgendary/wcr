@@ -16,7 +16,7 @@ func check(e error) {
 func main() {
 	log.Printf("[host] Wasm Contract runtime..")
 
-	wrt := wasmruntime.NewRuntime("./fabric_contract.wasm")
+	wrt := wasmruntime.NewRuntime("/chaincode/input/src/wasmruntime/fabric_contract.wasm")
 
 	err := shim.Start(wrt)
 	check(err)

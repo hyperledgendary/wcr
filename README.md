@@ -1,17 +1,25 @@
-# Wasm Smart Contracts
+# Smart Contracts - running in Wasm
 
-Very brief notes on how this is working.
+Web Assembly (Wasm) is "a new code format for deploying programs that is portable, safe, efficient, and universal.”
 
-- A node.js smart contract is being used to hide within it a wasm file.
-- This node.js smart contract is using the chaincode interface with init and invoke - rather than the contract interface
-- When the smart contract is started, the inbuilt node.js Wasm runtime is started with the `contract.wasm` loaded
-- The shim is then kicked into life, the `init` and `invoke` methods are used to route calls to the Wasm runtime
-- This routing is done using a variant of the [waPC implementation](https://github.com/wapc)
-  - Any call from gRPC needs to sent to the guest code running inside the Wasm runtime
-  - But the the only interface is based on sending ints, or treating those ints as offsets into memory
-  - The host runtime, can't arbitrarily assign space; ideally this is done in the guest language.
-  - Each guest language has it's own memory management policy - so it might export malloc/free calls. or it might not. This is independent of the Wasm runtime.
-  - The waPC is simpler in approach but involves more calls from host-guest etc. but permits function calls with str & buffer args bidirectional from host to guest
-  - This means that an `invoke` call from the peer can be routed to the guest language and to the contract..
+This repo provides the PoC for a writing a smart contract runs inside a Wasm engine. This Wasm engine is hosted by a golang chaincode that implements the gRPC to talk back to the peer, and route calls to the guest code in the Wasm engine.
 
-Simples...
+The Smart Contract is currently written in rust - and it is hardcoded;  the next thing to work on!
+
+## Steps
+
+1. Setup and tools
+   1. Over and above the standard Fabric dev tools you will need the latest [rust compiler](https://www.rust-lang.org/tools/install) installed. 
+   2. This repo as well!
+2. Create the Wasm Contract
+   1. Go to the `wasm-contracts/rust-workspace` directory
+   2. This is a rust contract, and needs to be built but targeting Wasm
+   3. `cargo build --target wasm32-unknown-unknown`
+   4. A Wasm file will be created in the `target/wasm32-unknown-unknown` directory.
+3. Build the Wasm engine
+   1. There are several different Wasm engines, and there are experiements in each. 
+   2. Go to the `wasm-runtimes/go-life` directory, and build this
+   3. `go build`
+   4. a 'wcr' binary will be created.
+4. Provide this to the builder
+   1. The WCR binary and the Wasm binary need to be provided to the builder. 

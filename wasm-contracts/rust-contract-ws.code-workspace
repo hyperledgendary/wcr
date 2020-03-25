@@ -11,6 +11,9 @@
 		{
 			"name": "wapc-guest-rust",
 			"path": "/home/matthew/github.com/ampretia/wasm/wapc-guest-rust"
+		},
+		{
+			"path": "/home/matthew/github.com/hyperledgendary/wcr/wasm-runtimes/go-life"
 		}
 	],
 	"settings": {}
